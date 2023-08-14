@@ -6,6 +6,7 @@ echo ">>> SETUP CLIENTS & ASSEMBLE CHARTS"
 
 cd openstack-helm
 
+./tools/deployment/common/env-variables.sh
 ./tools/deployment/common/prepare-k8s.sh
 ./tools/deployment/developer/common/020-setup-client.sh
 

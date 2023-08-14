@@ -22,10 +22,8 @@ Vagrant.configure("2") do |config|
         SHELL
       end
       master.vm.provision "shell", path:"kubeadm/init-master.sh", env: {"K8S_CONTROL_PLANE_ENDPOINT" => control_plane_endpoint, "K8S_POD_NETWORK_CIDR" => pod_network_cidr, "MASTER_NODE_IP" => master_node_ip}
-      master.vm.provision "shell", path:"helm/install.sh"
+      # master.vm.provision "shell", path:"helm/install.sh"
       # master.vm.provision "shell", path:"monitoring/metrics-server/install.sh"
-      master.vm.provision "shell", path:"openstack/bootstrap.sh"
-      master.vm.provision "shell", path:"openstack/deployment.sh"
     end
     (1..3).each do |nodeIndex|
       config.vm.define "worker-#{nodeIndex}" do |worker|
@@ -48,6 +46,23 @@ Vagrant.configure("2") do |config|
             sudo systemctl restart kubelet
             SHELL
       end
+    end
+    config.vm.define "operator" do |operator|
+      operator.vm.box = "ubuntu/focal64"
+      operator.vm.hostname = "operator.#{domain}"
+      operator.vm.network "public_network", bridge: "#{bridge_nic_name}", ip: "192.168.1.234"
+      operator.vm.provision "shell", env: {"DOMAIN" => domain, "MASTER_NODE_IP" => master_node_ip} ,inline: <<-SHELL 
+      echo "$MASTER_NODE_IP k8s-master.$DOMAIN k8s-master" >> /etc/hosts 
+      SHELL
+      (1..3).each do |nodeIndex|
+        operator.vm.provision "shell", env: {"DOMAIN" => domain, "NODE_INDEX" => nodeIndex}, inline: <<-SHELL 
+        echo "192.168.1.23$NODE_INDEX k8s-worker-$NODE_INDEX.$DOMAIN k8s-worker-$NODE_INDEX" >> /etc/hosts 
+        SHELL
+      end
+      operator.vm.provision "shell", path:"kubeadm/init-operator.sh"
+      operator.vm.provision "shell", path:"helm/install.sh"
+      operator.vm.provision "shell", path:"openstack/bootstrap.sh"
+      operator.vm.provision "shell", path:"openstack/deployment.sh"
     end
     config.vm.provider "virtualbox" do |vb|
       vb.memory = "3072"

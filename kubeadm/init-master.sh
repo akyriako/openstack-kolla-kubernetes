@@ -2,6 +2,9 @@
 
 echo ">>> INIT MASTER NODE"
 
+rm -f /vagrant/kubeadm/init-worker.sh
+rm -f /vagrant/kubeadm/admin.conf
+
 sudo systemctl enable kubelet
 
 kubeadm init \
