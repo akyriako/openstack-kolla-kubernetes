@@ -9,11 +9,11 @@ bridge_nic_name = "en0: Wi-Fi"
 Vagrant.configure("2") do |config|
     config.vbguest.auto_update = false 
     config.ssh.insert_key = true
-    config.vm.provision :shell, path: "kubeadm/bootstrap.sh", env: { "VERSION" => version }
     config.vm.define "master" do |master|
       master.vm.box = "ubuntu/focal64"
       master.vm.hostname = "k8s-master.#{domain}"
       master.vm.network "public_network", bridge: "#{bridge_nic_name}", ip: "#{master_node_ip}"
+      master.vm.provision "shell", path: "kubeadm/bootstrap.sh", env: { "VERSION" => version }
       master.vm.provision "shell", env: {"DOMAIN" => domain, "MASTER_NODE_IP" => master_node_ip} ,inline: <<-SHELL 
       echo "$MASTER_NODE_IP k8s-master.$DOMAIN k8s-master" >> /etc/hosts 
       SHELL
@@ -29,6 +29,7 @@ Vagrant.configure("2") do |config|
         worker.vm.box = "ubuntu/focal64"
         worker.vm.hostname = "k8s-worker-#{nodeIndex}.#{domain}"
         worker.vm.network "public_network", bridge: "#{bridge_nic_name}", ip: "192.168.1.23#{nodeIndex}"
+        worker.vm.provision "shell", path: "kubeadm/bootstrap.sh", env: { "VERSION" => version }
         worker.vm.provision "shell", env: {"DOMAIN" => domain, "MASTER_NODE_IP" => master_node_ip} ,inline: <<-SHELL 
         echo "$MASTER_NODE_IP k8s-master.$DOMAIN k8s-master" >> /etc/hosts 
         SHELL
@@ -60,8 +61,7 @@ Vagrant.configure("2") do |config|
         SHELL
       end
       operator.vm.provision "shell", path:"helm/install.sh"
-      operator.vm.provision "shell", path:"openstack/init-operator.sh"
-      operator.vm.provision "shell", path:"openstack/bootstrap.sh"
+      operator.vm.provision "shell", path:"openstack/bootstrap.sh", env: { "VERSION" => version }
       operator.vm.provision "shell", path:"openstack/deployment.sh"
     end
     config.vm.provider "virtualbox" do |vb|
