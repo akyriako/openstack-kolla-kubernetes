@@ -7,7 +7,8 @@ version = "1.27.0-00"
 bridge_nic_name = "en0: Wi-Fi"
 
 Vagrant.configure("2") do |config|
-    config.ssh.insert_key = false
+    config.vbguest.auto_update = false 
+    config.ssh.insert_key = true
     config.vm.provision :shell, path: "kubeadm/bootstrap.sh", env: { "VERSION" => version }
     config.vm.define "master" do |master|
       master.vm.box = "ubuntu/focal64"
@@ -22,8 +23,6 @@ Vagrant.configure("2") do |config|
         SHELL
       end
       master.vm.provision "shell", path:"kubeadm/init-master.sh", env: {"K8S_CONTROL_PLANE_ENDPOINT" => control_plane_endpoint, "K8S_POD_NETWORK_CIDR" => pod_network_cidr, "MASTER_NODE_IP" => master_node_ip}
-      # master.vm.provision "shell", path:"helm/install.sh"
-      # master.vm.provision "shell", path:"monitoring/metrics-server/install.sh"
     end
     (1..3).each do |nodeIndex|
       config.vm.define "worker-#{nodeIndex}" do |worker|
@@ -45,6 +44,7 @@ Vagrant.configure("2") do |config|
             sudo systemctl daemon-reload
             sudo systemctl restart kubelet
             SHELL
+        worker.vm.provision "shell", path:"openstack/setup-ceph-loopback-device.sh"
       end
     end
     config.vm.define "operator" do |operator|
@@ -59,8 +59,8 @@ Vagrant.configure("2") do |config|
         echo "192.168.1.23$NODE_INDEX k8s-worker-$NODE_INDEX.$DOMAIN k8s-worker-$NODE_INDEX" >> /etc/hosts 
         SHELL
       end
-      operator.vm.provision "shell", path:"kubeadm/init-operator.sh"
       operator.vm.provision "shell", path:"helm/install.sh"
+      operator.vm.provision "shell", path:"openstack/init-operator.sh"
       operator.vm.provision "shell", path:"openstack/bootstrap.sh"
       operator.vm.provision "shell", path:"openstack/deployment.sh"
     end
