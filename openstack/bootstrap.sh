@@ -42,12 +42,3 @@ sudo chown $(id -u):$(id -g) /home/vagrant/.kube/config
 
 sudo chown -R vagrant /home/vagrant/.kube
 sudo chgrp -R vagrant /home/vagrant/.kube
-
-
-echo ">>> CLONE OPENSTACK-HELM-* REPOS"
-
-set -xe
-
-git clone https://opendev.org/openstack/openstack-helm-infra.git
-git clone https://opendev.org/openstack/openstack-helm.git
-

@@ -4,7 +4,9 @@ echo ">>> SETUP CLIENTS & ASSEMBLE CHARTS"
 
 : ${OSH_INFRA_PATH:="../openstack-helm-infra"}
 
-cd openstack-helm
+# cd openstack-helm
+
+cd /vagrant/openstack/openstack-helm
 
 ./tools/deployment/common/env-variables.sh
 ./tools/deployment/common/prepare-k8s.sh
@@ -15,21 +17,11 @@ echo ">>> DEPLOY INGRESS CONTROLLER"
 export OSH_DEPLOY_MULTINODE=True
 ./tools/deployment/component/common/ingress.sh
 
-# echo ">>> CREATE LOOPBACK DEVICE FOR CEPH"
-
-# # export CREATE_LOOPBACK_DEVICES_FOR_CEPH=False
-# export CEPH_OSD_DATA_DEVICE=/dev/loop8
-# export CEPH_OSD_DB_WAL_DEVICE=/dev/loop9
-
-# export ANSIBLE_HOST_KEY_CHECKING=False
-# ansible all -i /vagrant/openstack/inventory -m shell -a "tools/deployment/common/setup-ceph-loopback-device.sh --ceph-osd-data /dev/loop0 --ceph-osd-dbwal /dev/loop1"
-
 echo ">>> DEPLOY CEPH"
 
-# ./tools/deployment/multinode/030-ceph.sh
+: ${CEPH_OSD_DATA_DEVICE:=$OSD_DATA_DEVICE}
+: ${CEPH_OSD_DB_WAL_DEVICE:=$OSD_WAL_DEVICE}
 
-: ${CEPH_OSD_DATA_DEVICE:=/dev/loop8}
-: ${CEPH_OSD_DB_WAL_DEVICE:=/dev/loop9}
 
 #NOTE: Deploy command
 [ -s /tmp/ceph-fs-uuid.txt ] || uuidgen > /tmp/ceph-fs-uuid.txt
@@ -139,29 +131,29 @@ echo ">>> DEPLOY GLANCE"
 
 ./tools/deployment/multinode/100-glance.sh
 
-echo ">>> DEPLOY CINDER"
+# # echo ">>> DEPLOY CINDER"
 
-./tools/deployment/multinode/110-cinder.sh
+# # ./tools/deployment/multinode/110-cinder.sh
 
-echo ">>> DEPLOY OVS"
+# # echo ">>> DEPLOY OVS"
 
-./tools/deployment/multinode/120-openvswitch.sh
+# # ./tools/deployment/multinode/120-openvswitch.sh
 
-echo ">>> DEPLOY LIBVIRT"
+# # echo ">>> DEPLOY LIBVIRT"
 
-./tools/deployment/multinode/130-libvirt.sh
+# # ./tools/deployment/multinode/130-libvirt.sh
 
-echo ">>> DEPLOY NOVA & NEUTRON"
+# # echo ">>> DEPLOY NOVA & NEUTRON"
 
-./tools/deployment/multinode/140-compute-kit.sh
+# # ./tools/deployment/multinode/140-compute-kit.sh
 
-echo ">>> DEPLOY HEAT"
+# # echo ">>> DEPLOY HEAT"
 
-./tools/deployment/multinode/150-heat.sh
+# # ./tools/deployment/multinode/150-heat.sh
 
-echo ">>> DEPLOY BARBICAN"
+# # echo ">>> DEPLOY BARBICAN"
 
-./tools/deployment/multinode/160-barbican.sh
+# # ./tools/deployment/multinode/160-barbican.sh
 
 
 

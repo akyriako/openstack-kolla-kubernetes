@@ -2,3 +2,6 @@
 
 kubeadm/init-worker.sh
 kubeadm/admin.conf
+
+openstack-helm/
+openstack-helm-infra/
